@@ -112,7 +112,7 @@ With this choice of $i$, the regret of the combined algorithm is
 & \le \sqrt{12 \sum_{t=1}^T \norm{\ell_t}_\infty^2} (1 + i) + \sqrt{6 \sum_{t=1}^T \norm{\ell_t}_\infty^2} \left(\sqrt{2^i} + \frac{\KL{u}{\pi}}{\sqrt{2^{i}}} \right) \\
 & \le \sqrt{12 \sum_{t=1}^T \norm{\ell_t}_\infty^2} (2 + \sqrt{\KL{u}{\pi}}) \\
 & \qquad + \sqrt{6 \sum_{t=1}^T \norm{\ell_t}_\infty^2} \left(\sqrt{2^{\max\{1, 1 + \log_2 \KL{u}{\pi}\}}} + \frac{\KL{u}{\pi}}{\sqrt{2^{\max\{1, \log_2 \KL{u}{\pi} \}}}} \right) \\
-& \le \sqrt{12 \sum_{t=1}^T \norm{\ell_t}_\infty^2} (2 + \sqrt{\KL{u}{\pi}}) + \sqrt{6 \sum_{t=1}^T \norm{\ell_t}_\infty^2} \max \left\{2 + \frac{2}{\sqrt{2}}, (\sqrt{2} + 1) \KL{u}{\pi} \right\} \; .
+& \le \sqrt{12 \sum_{t=1}^T \norm{\ell_t}_\infty^2} (2 + \sqrt{\KL{u}{\pi}}) + \sqrt{6 \sum_{t=1}^T \norm{\ell_t}_\infty^2} \max \left\{2 + \frac{2}{\sqrt{2}}, (\sqrt{2} + 1) \sqrt{\KL{u}{\pi}} \right\} \; .
 \end{align*}
 The last inequality can be proved by considering the cases $\KL{u}{\pi} \le 2$
 and $\KL{u}{\pi} > 2$.
