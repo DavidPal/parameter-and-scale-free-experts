@@ -1,0 +1,120 @@
+\documentclass[12pt]{article}
+
+\usepackage{fullpage,amssymb,amsmath,amsthm}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\KL}[2]{D\left(#1 \middle\| #2 \right)}
+\DeclareMathOperator{\Regret}{Regret}
+
+\begin{document}
+
+\title{Parameter- and Scale-Free Algorithms for Learning with Expert Advice}
+\author{Francesco Orabona \and D\'avid P\'al}
+\maketitle
+
+\section{Introduction}
+
+Learning with Expert Advice (LEA) is an online problem where in each round an
+algorithm chooses a point $x_t$ in the probability simplex $\Delta_N = \{x \in
+\R^N ~:~ x \ge 0, \norm{x}_1 = 1 \}$ and as a response it receives a loss
+vector $\ell_t \in \R^N$ and suffers a loss $\langle \ell_t, x_t \rangle$.
+Algorithm's goal is to be competitive with a strategy that in each round
+chooses the same point $u \in \Delta_N$.
+The difference of their losses, after $T$ rounds, is called
+\emph{regret with respect to u}. Formally,
+$$
+\Regret_T(u) = \sum_{t=1}^T \langle \ell_t, x_t \rangle - \sum_{t=1}^T \langle \ell_t, u \rangle \; .
+$$
+
+We wish to construct an algorithm that receives as an input \emph{prior
+distribution} $\pi \in \Delta_N$ and an positive integer $N$ and satisfies
+\begin{equation}
+\label{equation:parameter-scale-free-bound}
+\forall T \ge 0 \quad \forall u \in \Delta_N \qquad \Regret_T(u) \le C \sqrt{(1 + \KL{u}{\pi}) \sum_{t=1}^T \norm{\ell_t}_\infty^2} \; .
+\end{equation}
+for some universal constant $C > 0$.  In particular, the algorithm does
+\emph{not} receive neither $u$, $T$, $\sum_{t=1}^T \norm{\ell_t}_\infty^2$ nor
+$\max_{1 \le t \le T} \norm{\ell_t}_\infty$, nor learning rate nor step size.
+Thus the algorithm must be \emph{parameter-free} and \emph{scale-free}.
+
+The bound \eqref{equation:parameter-scale-free-bound} is in contrast with
+existing algorithms for LEA. Existing algorithms either assume that
+$\norm{\ell_t}_\infty \le 1$ for all $t \ge 0$ or the bound on their regret is
+looser, e.g., $O\left( \sqrt{\ln N \sum_{t=1}^T \norm{\ell_t}_\infty^2}
+\right)$.
+
+We will use the following facts. For any $\pi \in \Delta_N$, the function
+$f_\pi(u) = \KL{u}{\pi}$ is $1$-strongly convex with respect to
+$\norm{\cdot}_1$; this result is called Pinsker's inequality.
+
+\section{Parameter- and Scale-Free Algorithms}
+
+We design a parameter- and scale-free algorithm using a two layer construction.
+At the bottom layer there are infinitely many ``slave'' algorithms indexed by
+positive integers $i=1,2,\dots$. At the top layer there is a single ``master''
+algorithm that combines predictions of the slave algorithms.  Both slave and
+master algorithms are instances of AdaHedge. The only technical part is that
+the master is solving LEA with infinitely many experts.
+
+
+For any $\pi \in \Delta_N$ and any $\lambda > 0$, AdaHedge with regularizer
+$R(u) = \lambda \cdot \KL{u}{\pi}$ satisfies the following regret bound
+$$
+\forall T \ge 0 \quad \forall u \in \Delta_N \qquad \Regret_T(u) \le \sqrt{3}\max\left\{2, \frac{1}{\sqrt{2 \lambda}}\right\} \sqrt{\sum_{t=1}^T \norm{\ell_t}_\infty^2} \left(1 + \lambda \cdot \KL{u}{\pi} \right) \; .
+$$
+We need to specify $\lambda$'s and $\pi$'s for slave and master algorithms.
+All slaves will use the same prior $\pi$; this prior can be arbitrary.  Slave
+algorithm with index $i$ will use $\lambda = \lambda_i = \frac{1}{4} \cdot 2^{-i}$. The master
+algorithm will use $\lambda = 1$ and prior distribution $\pi = (2^{-1}, 2^{-2},
+2^{-3}, \dots)$.
+
+We denote by $x^{(i)}_t$ the prediction of $i$-th slave algorithm.
+We denote by $p_t$ the distribution predicted by master algorithm in round $t$.
+The final prediction $x_t \in \Delta_N$ of the combined algorithm is the mixture
+$$
+x_t = \sum_{i=1}^\infty p_{t,i} \cdot x^{(i)}_t \; .
+$$
+Note that since both slaves and master are scale-free, the combined algorithm
+is scale-free as well. Namely, the sequences $\{x^{(i)}\}_{t=1}^\infty$,
+$\{p_t\}_{t=1}^\infty$, $\{x_t\}_{t=1}^\infty$ do not change if the sequence of
+loss vectors $\{\ell_t\}_{t=1}^\infty$ is replaced with the sequence $\{c
+\ell_t\}_{t=1}^\infty$ for any $c > 0$.
+
+We bound the regret of combined algorithm, by decomposing the regret
+across the two layers. For any $T \ge 0$, any $i \ge 1$ and any $u \in \Delta_N$, we have
+\begin{align*}
+\Regret_T(u)
+& = \sum_{t=1}^T \langle \ell_t, x_t \rangle - \sum_{t=1}^T \langle \ell_t, u \rangle \\
+& = \underbrace{\left(\sum_{t=1}^T \langle \ell_t, x_t \rangle - \sum_{t=1}^T \langle \ell_t, x^{(i)}_t \rangle \right)}_{\Regret^{\text{master}}_T(e_i)}
++ \underbrace{\left(\sum_{t=1}^T \langle \ell_t, x^{(i)}_t \rangle - \sum_{t=1}^T \langle \ell_t, u \rangle \right)}_{\Regret^{(i)}_T(u)} \\
+& = \underbrace{\left(\sum_{t=1}^T \sum_{t=1}^T p_{t,i} \cdot \langle \ell_t, x^{(i)} \rangle - \sum_{t=1}^T \langle \ell_t, x^{(i)}_t \rangle \right)}_{\Regret^{\text{master}}_T(e_i)}
++ \underbrace{\left(\sum_{t=1}^T \langle \ell_t, x^{(i)}_t \rangle - \sum_{t=1}^T \langle \ell_t, u \rangle \right)}_{\Regret^{(i)}_T(u)} \\
+& \le \sqrt{3} \max\left\{2, \frac{1}{\sqrt{2}} \right\} \sqrt{\sum_{t=1}^T \norm{\ell_t}_\infty^2} (1 + \ln(2^i)) \\
+& \qquad + \sqrt{3} \max\left\{2, \frac{1}{\sqrt{\frac{1}{2} 2^{-i}}} \right\} \sqrt{\sum_{t=1}^T \norm{\ell_t}_\infty^2} (1 + 2^{-i} \cdot \KL{u}{\pi}) \\
+& \le \sqrt{12 \sum_{t=1}^T \norm{\ell_t}_\infty^2} (1 + i) + \sqrt{6 \sum_{t=1}^T \norm{\ell_t}_\infty^2} \left(\sqrt{2^i} + \frac{\KL{u}{\pi}}{\sqrt{2^{i}}} \right) \; .
+\end{align*}
+Since the bound holds for any $i$, we can choose an optimal value for it.
+We choose $i$ so that $2^i \approx \KL{u}{\pi}$. More precisely, we choose
+$$
+i = \max\left\{1, \left\lceil  \log_2 \KL{u}{\pi} \right\rceil \right\} \; .
+$$
+Note that
+$$
+\max\{1, \log_2 \KL{u}{\pi}\} \le i < \max\{1, 1 + \log_2 \KL{u}{\pi}\}
+$$
+and also $i \le 1 + \sqrt{\KL{u}{\pi}}$ which follows from the inequality
+$\max\{1, \lceil \log_2 x \rceil\} \le 1 + \sqrt{x}$ valid for all $x \ge 0$.
+
+With this choice of $i$, the regret of the combined algorithm is
+\begin{align*}
+\Regret_T(u)
+& \le \sqrt{12 \sum_{t=1}^T \norm{\ell_t}_\infty^2} (1 + i) + \sqrt{6 \sum_{t=1}^T \norm{\ell_t}_\infty^2} \left(\sqrt{2^i} + \frac{\KL{u}{\pi}}{\sqrt{2^{i}}} \right) \\
+& \le \sqrt{12 \sum_{t=1}^T \norm{\ell_t}_\infty^2} (2 + \sqrt{\KL{u}{\pi}}) \\
+& \qquad + \sqrt{6 \sum_{t=1}^T \norm{\ell_t}_\infty^2} \left(\sqrt{2^{\max\{1, 1 + \log_2 \KL{u}{\pi}\}}} + \frac{\KL{u}{\pi}}{\sqrt{2^{\max\{1, \log_2 \KL{u}{\pi} \}}}} \right) \\
+& \le \sqrt{12 \sum_{t=1}^T \norm{\ell_t}_\infty^2} (2 + \sqrt{\KL{u}{\pi}}) + \sqrt{6 \sum_{t=1}^T \norm{\ell_t}_\infty^2} \max \left\{2 + \frac{2}{\sqrt{2}}, (\sqrt{2} + 1) \KL{u}{\pi} \right\} \; .
+\end{align*}
+The last inequality can be proved by considering the cases $\KL{u}{\pi} \le 2$
+and $\KL{u}{\pi} > 2$.
+
+\end{document}

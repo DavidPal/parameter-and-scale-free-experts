@@ -5,6 +5,7 @@
 *.log
 *.nav
 *.toc
+main.pdf
 
 # Vim temporary files
 *.swp
